@@ -18,6 +18,10 @@
 #include <rtthread.h>
 #include <rthw.h>
 
+#ifdef RT_USING_MODULE
+#include <dlmodule.h>
+#endif
+
 /*
  * define object_info for the number of rt_object_container items.
  */
@@ -49,6 +53,9 @@ enum rt_object_info_type
     RT_Object_Info_Device,                             /**< The object is a device */
 #endif
     RT_Object_Info_Timer,                              /**< The object is a timer. */
+#ifdef RT_USING_MODULE
+    RT_Object_Info_Module,                             /**< The object is a module. */
+#endif
     RT_Object_Info_Unknown,                            /**< The object is unknown. */
 };
 
@@ -92,6 +99,10 @@ static struct rt_object_information rt_object_container[RT_Object_Info_Unknown] 
 #endif
     /* initialize object container - timer */
     {RT_Object_Class_Timer, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Timer), sizeof(struct rt_timer)},
+#ifdef RT_USING_MODULE
+    /* initialize object container - module */
+    {RT_Object_Class_Module, _OBJ_CONTAINER_LIST_INIT(RT_Object_Info_Module), sizeof(struct rt_dlmodule)},
+#endif
 };
 
 #ifdef RT_USING_HOOK
@@ -216,6 +227,7 @@ rt_object_get_information(enum rt_object_class_type type)
 
     return RT_NULL;
 }
+RTM_EXPORT(rt_object_get_information);
 
 /**
  * This function will return the length of object list in object container.
@@ -244,6 +256,7 @@ int rt_object_get_length(enum rt_object_class_type type)
 
     return count;
 }
+RTM_EXPORT(rt_object_get_length);
 
 /**
  * This function will copy the object pointer of the specified type,
@@ -285,6 +298,7 @@ int rt_object_get_pointers(enum rt_object_class_type type, rt_object_t *pointers
 
     return index;
 }
+RTM_EXPORT(rt_object_get_pointers);
 
 /**
  * This function will initialize an object and add it to object system
@@ -301,6 +315,9 @@ void rt_object_init(struct rt_object         *object,
     register rt_base_t temp;
     struct rt_list_node *node = RT_NULL;
     struct rt_object_information *information;
+#ifdef RT_USING_MODULE
+    struct rt_dlmodule *module = dlmodule_self();
+#endif
 
     /* get object information */
     information = rt_object_get_information(type);
@@ -337,8 +354,18 @@ void rt_object_init(struct rt_object         *object,
     /* lock interrupt */
     temp = rt_hw_interrupt_disable();
 
-    /* insert object into information object list */
-    rt_list_insert_after(&(information->object_list), &(object->list));
+#ifdef RT_USING_MODULE
+    if (module)
+    {
+        rt_list_insert_after(&(module->object_list), &(object->list));
+        object->module_id = (void *)module;
+    }
+    else
+#endif
+    {
+        /* insert object into information object list */
+        rt_list_insert_after(&(information->object_list), &(object->list));
+    }
 
     /* unlock interrupt */
     rt_hw_interrupt_enable(temp);
@@ -386,6 +413,9 @@ rt_object_t rt_object_allocate(enum rt_object_class_type type, const char *name)
     struct rt_object *object;
     register rt_base_t temp;
     struct rt_object_information *information;
+#ifdef RT_USING_MODULE
+    struct rt_dlmodule *module = dlmodule_self();
+#endif
 
     RT_DEBUG_NOT_IN_INTERRUPT;
 
@@ -419,8 +449,18 @@ rt_object_t rt_object_allocate(enum rt_object_class_type type, const char *name)
     /* lock interrupt */
     temp = rt_hw_interrupt_disable();
 
-    /* insert object into information object list */
-    rt_list_insert_after(&(information->object_list), &(object->list));
+#ifdef RT_USING_MODULE
+    if (module)
+    {
+        rt_list_insert_after(&(module->object_list), &(object->list));
+        object->module_id = (void *)module;
+    }
+    else
+#endif
+    {
+        /* insert object into information object list */
+        rt_list_insert_after(&(information->object_list), &(object->list));
+    }
 
     /* unlock interrupt */
     rt_hw_interrupt_enable(temp);

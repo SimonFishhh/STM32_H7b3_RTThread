@@ -32,6 +32,9 @@
 #include "../RT-Thread/bsp/ST7789/lcd_spi_200.h"
 //#include "lvgl.h"
 //#include "lv_port/lv_port_disp."
+#include <dfs_elm.h>
+#include <dfs_fs.h>
+#include <dfs_file.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -99,15 +102,46 @@ int main(void)
   /* USER CODE BEGIN 2 */
     //rtthread system init
     fal_init();
+
+    struct rt_device *flash_dev = fal_blk_device_create("fs_qspi");
+
+    if (flash_dev == NULL)
+    {
+        rt_kprintf("Can't create a block device on '%s' partition.\n", "fs_qspi");
+    }
+    else
+    {
+        rt_kprintf("Create a block device on the %s partition of flash successful.\n", "fs_qspi");
+    }
+
+    if(rt_device_find("fs_qspi") != RT_NULL)
+    {
+        dfs_mkfs("elm", "fs_qspi");
+
+        if (dfs_mount("fs_qspi", "/", "elm", 0, 0) == RT_EOK)
+        {
+            rt_kprintf("onchip elm filesystem mount to '/'\n");
+        }
+        else
+        {
+            rt_kprintf("onchip elm filesystem mount to '/' failed!\n");
+        }
+    }
+    else
+    {
+        rt_kprintf("find filesystem portion failed\r\n");
+    }
+
     //app init
     App_Init();
+
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      rt_thread_mdelay(5000);
+      rt_thread_mdelay(500);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

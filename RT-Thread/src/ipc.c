@@ -34,9 +34,6 @@
  * 2013-09-14     Grissiom     add an option check in rt_event_recv
  * 2018-10-02     Bernard      add 64bit support for mailbox
  * 2019-09-16     tyx          add send wait support for message queue
- * 2020-07-29     Meco Man     fix thread->event_set/event_info when received an
- *                             event without pending
- * 2020-10-11     Meco Man     add value overflow-check code
  */
 
 #include <rtthread.h>
@@ -224,6 +221,7 @@ rt_err_t rt_sem_init(rt_sem_t    sem,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_sem_init);
 
 /**
  * This function will detach a semaphore from resource management
@@ -249,6 +247,7 @@ rt_err_t rt_sem_detach(rt_sem_t sem)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_sem_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -285,6 +284,7 @@ rt_sem_t rt_sem_create(const char *name, rt_uint32_t value, rt_uint8_t flag)
 
     return sem;
 }
+RTM_EXPORT(rt_sem_create);
 
 /**
  * This function will delete a semaphore object and release the memory
@@ -312,6 +312,7 @@ rt_err_t rt_sem_delete(rt_sem_t sem)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_sem_delete);
 #endif
 
 /**
@@ -409,6 +410,7 @@ rt_err_t rt_sem_take(rt_sem_t sem, rt_int32_t time)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_sem_take);
 
 /**
  * This function will try to take a semaphore and immediately return
@@ -421,6 +423,7 @@ rt_err_t rt_sem_trytake(rt_sem_t sem)
 {
     return rt_sem_take(sem, 0);
 }
+RTM_EXPORT(rt_sem_trytake);
 
 /**
  * This function will release a semaphore, if there are threads suspended on
@@ -479,6 +482,7 @@ rt_err_t rt_sem_release(rt_sem_t sem)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_sem_release);
 
 /**
  * This function can get or set some extra attributions of a semaphore object.
@@ -522,6 +526,7 @@ rt_err_t rt_sem_control(rt_sem_t sem, int cmd, void *arg)
 
     return -RT_ERROR;
 }
+RTM_EXPORT(rt_sem_control);
 #endif /* end of RT_USING_SEMAPHORE */
 
 #ifdef RT_USING_MUTEX
@@ -556,6 +561,7 @@ rt_err_t rt_mutex_init(rt_mutex_t mutex, const char *name, rt_uint8_t flag)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mutex_init);
 
 /**
  * This function will detach a mutex from resource management
@@ -581,6 +587,7 @@ rt_err_t rt_mutex_detach(rt_mutex_t mutex)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mutex_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -617,6 +624,7 @@ rt_mutex_t rt_mutex_create(const char *name, rt_uint8_t flag)
 
     return mutex;
 }
+RTM_EXPORT(rt_mutex_create);
 
 /**
  * This function will delete a mutex object and release the memory
@@ -644,6 +652,7 @@ rt_err_t rt_mutex_delete(rt_mutex_t mutex)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mutex_delete);
 #endif
 
 /**
@@ -697,6 +706,9 @@ rt_err_t rt_mutex_take(rt_mutex_t mutex, rt_int32_t time)
     }
     else
     {
+#ifdef RT_USING_SIGNALS
+__again:
+#endif /* end of RT_USING_SIGNALS */
         /* The value of mutex is 1 in initial status. Therefore, if the
          * value is great than 0, it indicates the mutex is avaible.
          */
@@ -773,6 +785,11 @@ rt_err_t rt_mutex_take(rt_mutex_t mutex, rt_int32_t time)
 
                 if (thread->error != RT_EOK)
                 {
+#ifdef RT_USING_SIGNALS
+                    /* interrupt by signal, try it again */
+                    if (thread->error == -RT_EINTR) goto __again;
+#endif /* end of RT_USING_SIGNALS */
+
                     /* return error */
                     return thread->error;
                 }
@@ -793,6 +810,7 @@ rt_err_t rt_mutex_take(rt_mutex_t mutex, rt_int32_t time)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mutex_take);
 
 /**
  * This function will release a mutex, if there are threads suspended on mutex,
@@ -910,6 +928,7 @@ rt_err_t rt_mutex_release(rt_mutex_t mutex)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mutex_release);
 
 /**
  * This function can get or set some extra attributions of a mutex object.
@@ -928,6 +947,7 @@ rt_err_t rt_mutex_control(rt_mutex_t mutex, int cmd, void *arg)
 
     return -RT_ERROR;
 }
+RTM_EXPORT(rt_mutex_control);
 #endif /* end of RT_USING_MUTEX */
 
 #ifdef RT_USING_EVENT
@@ -960,6 +980,7 @@ rt_err_t rt_event_init(rt_event_t event, const char *name, rt_uint8_t flag)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_event_init);
 
 /**
  * This function will detach an event object from resource management
@@ -983,6 +1004,7 @@ rt_err_t rt_event_detach(rt_event_t event)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_event_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -1015,6 +1037,7 @@ rt_event_t rt_event_create(const char *name, rt_uint8_t flag)
 
     return event;
 }
+RTM_EXPORT(rt_event_create);
 
 /**
  * This function will delete an event object and release the memory
@@ -1040,6 +1063,7 @@ rt_err_t rt_event_delete(rt_event_t event)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_event_delete);
 #endif
 
 /**
@@ -1141,6 +1165,7 @@ rt_err_t rt_event_send(rt_event_t event, rt_uint32_t set)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_event_send);
 
 /**
  * This function will receive an event from event object, if the event is
@@ -1275,6 +1300,7 @@ rt_err_t rt_event_recv(rt_event_t   event,
 
     return thread->error;
 }
+RTM_EXPORT(rt_event_recv);
 
 /**
  * This function can get or set some extra attributions of an event object.
@@ -1314,6 +1340,7 @@ rt_err_t rt_event_control(rt_event_t event, int cmd, void *arg)
 
     return -RT_ERROR;
 }
+RTM_EXPORT(rt_event_control);
 #endif /* end of RT_USING_EVENT */
 
 #ifdef RT_USING_MAILBOX
@@ -1358,6 +1385,7 @@ rt_err_t rt_mb_init(rt_mailbox_t mb,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mb_init);
 
 /**
  * This function will detach a mailbox from resource management
@@ -1383,6 +1411,7 @@ rt_err_t rt_mb_detach(rt_mailbox_t mb)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mb_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -1430,6 +1459,7 @@ rt_mailbox_t rt_mb_create(const char *name, rt_size_t size, rt_uint8_t flag)
 
     return mb;
 }
+RTM_EXPORT(rt_mb_create);
 
 /**
  * This function will delete a mailbox object and release the memory
@@ -1461,6 +1491,7 @@ rt_err_t rt_mb_delete(rt_mailbox_t mb)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mb_delete);
 #endif
 
 /**
@@ -1602,6 +1633,7 @@ rt_err_t rt_mb_send_wait(rt_mailbox_t mb,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mb_send_wait);
 
 /**
  * This function will send a mail to mailbox object, if there are threads
@@ -1617,6 +1649,7 @@ rt_err_t rt_mb_send(rt_mailbox_t mb, rt_ubase_t value)
 {
     return rt_mb_send_wait(mb, value, 0);
 }
+RTM_EXPORT(rt_mb_send);
 
 /**
  * This function will receive a mail from mailbox object, if there is no mail
@@ -1757,6 +1790,7 @@ rt_err_t rt_mb_recv(rt_mailbox_t mb, rt_ubase_t *value, rt_int32_t timeout)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mb_recv);
 
 /**
  * This function can get or set some extra attributions of a mailbox object.
@@ -1800,6 +1834,7 @@ rt_err_t rt_mb_control(rt_mailbox_t mb, int cmd, void *arg)
 
     return -RT_ERROR;
 }
+RTM_EXPORT(rt_mb_control);
 #endif /* end of RT_USING_MAILBOX */
 
 #ifdef RT_USING_MESSAGEQUEUE
@@ -1872,6 +1907,7 @@ rt_err_t rt_mq_init(rt_mq_t     mq,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mq_init);
 
 /**
  * This function will detach a message queue object from resource management
@@ -1897,6 +1933,7 @@ rt_err_t rt_mq_detach(rt_mq_t mq)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mq_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -1968,6 +2005,7 @@ rt_mq_t rt_mq_create(const char *name,
 
     return mq;
 }
+RTM_EXPORT(rt_mq_create);
 
 /**
  * This function will delete a message queue object and release the memory
@@ -1998,6 +2036,7 @@ rt_err_t rt_mq_delete(rt_mq_t mq)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mq_delete);
 #endif
 
 /**
@@ -2170,6 +2209,7 @@ rt_err_t rt_mq_send_wait(rt_mq_t     mq,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mq_send_wait)
 
 /**
  * This function will send a message to message queue object, if there are
@@ -2185,6 +2225,7 @@ rt_err_t rt_mq_send(rt_mq_t mq, const void *buffer, rt_size_t size)
 {
     return rt_mq_send_wait(mq, buffer, size, 0);
 }
+RTM_EXPORT(rt_mq_send);
 
 /**
  * This function will send an urgent message to message queue object, which
@@ -2276,6 +2317,7 @@ rt_err_t rt_mq_urgent(rt_mq_t mq, const void *buffer, rt_size_t size)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mq_urgent);
 
 /**
  * This function will receive a message from message queue object, if there is
@@ -2437,6 +2479,7 @@ rt_err_t rt_mq_recv(rt_mq_t    mq,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_mq_recv);
 
 /**
  * This function can get or set some extra attributions of a message queue
@@ -2497,6 +2540,7 @@ rt_err_t rt_mq_control(rt_mq_t mq, int cmd, void *arg)
 
     return -RT_ERROR;
 }
+RTM_EXPORT(rt_mq_control);
 #endif /* end of RT_USING_MESSAGEQUEUE */
 
 /**@}*/

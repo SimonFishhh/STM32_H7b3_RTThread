@@ -14,7 +14,6 @@
  * 2015-05-04     Bernard      Rename it to components.c because compiling issue
  *                             in some IDEs.
  * 2015-07-29     Arda.Fu      Add support to use RT_USING_USER_MAIN with IAR
- * 2018-11-22     Jesven       Add secondary cpu boot up
  */
 
 #include <rthw.h>
@@ -227,6 +226,11 @@ int rtthread_startup(void)
 
     /* scheduler system initialization */
     rt_system_scheduler_init();
+
+#ifdef RT_USING_SIGNALS
+    /* signal system initialization */
+    rt_system_signal_init();
+#endif
 
     /* create init_thread */
     rt_application_init();

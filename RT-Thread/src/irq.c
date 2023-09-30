@@ -8,7 +8,6 @@
  * 2006-02-24     Bernard      first version
  * 2006-05-03     Bernard      add IRQ_DEBUG
  * 2016-08-09     ArdaFu       add interrupt enter and leave hook.
- * 2018-11-22     Jesven       rt_interrupt_get_nest function add disable irq
  */
 
 #include <rthw.h>
@@ -70,6 +69,7 @@ void rt_interrupt_enter(void)
     RT_OBJECT_HOOK_CALL(rt_interrupt_enter_hook,());
     rt_hw_interrupt_enable(level);
 }
+RTM_EXPORT(rt_interrupt_enter);
 
 /**
  * This function will be invoked by BSP, when leave interrupt service routine
@@ -90,6 +90,7 @@ void rt_interrupt_leave(void)
     RT_OBJECT_HOOK_CALL(rt_interrupt_leave_hook,());
     rt_hw_interrupt_enable(level);
 }
+RTM_EXPORT(rt_interrupt_leave);
 
 /**
  * This function will return the nest of interrupt.
@@ -109,5 +110,10 @@ RT_WEAK rt_uint8_t rt_interrupt_get_nest(void)
     rt_hw_interrupt_enable(level);
     return ret;
 }
+RTM_EXPORT(rt_interrupt_get_nest);
+
+RTM_EXPORT(rt_hw_interrupt_disable);
+RTM_EXPORT(rt_hw_interrupt_enable);
 
 /**@}*/
+

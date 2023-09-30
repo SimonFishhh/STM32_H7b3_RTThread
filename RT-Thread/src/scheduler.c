@@ -21,13 +21,6 @@
  * 2010-12-13     Bernard      add defunct list initialization even if not use heap.
  * 2011-05-10     Bernard      clean scheduler debug log.
  * 2013-12-21     Grissiom     add rt_critical_level
- * 2018-11-22     Jesven       remove the current task from ready queue
- *                             add per cpu ready queue
- *                             add _get_highest_priority_thread to find highest priority task
- *                             rt_schedule_insert_thread won't insert current task to ready queue
- *                             in smp version, rt_hw_context_switch_interrupt maybe switch to
- *                               new task directly
- *
  */
 
 #include <rtthread.h>
@@ -246,8 +239,24 @@ void rt_schedule(void)
                 rt_hw_context_switch((rt_ubase_t)&from_thread->sp,
                                      (rt_ubase_t)&to_thread->sp);
 
-                /* enable interrupt */
-                rt_hw_interrupt_enable(level);
+#ifdef RT_USING_SIGNALS
+                if (rt_current_thread->stat & RT_THREAD_STAT_SIGNAL_PENDING)
+                {
+                    extern void rt_thread_handle_sig(rt_bool_t clean_state);
+
+                    rt_current_thread->stat &= ~RT_THREAD_STAT_SIGNAL_PENDING;
+
+                    rt_hw_interrupt_enable(level);
+
+                    /* check signal status */
+                    rt_thread_handle_sig(RT_TRUE);
+                }
+                else
+#endif
+                {
+                    /* enable interrupt */
+                    rt_hw_interrupt_enable(level);
+                }
 
                 return ;
             }
@@ -379,6 +388,7 @@ void rt_enter_critical(void)
     /* enable interrupt */
     rt_hw_interrupt_enable(level);
 }
+RTM_EXPORT(rt_enter_critical);
 
 /**
  * This function will unlock the thread scheduler.
@@ -409,6 +419,7 @@ void rt_exit_critical(void)
         rt_hw_interrupt_enable(level);
     }
 }
+RTM_EXPORT(rt_exit_critical);
 
 /**
  * Get the scheduler lock level
@@ -419,5 +430,6 @@ rt_uint16_t rt_critical_level(void)
 {
     return rt_scheduler_lock_nest;
 }
+RTM_EXPORT(rt_critical_level);
 /**@}*/
 

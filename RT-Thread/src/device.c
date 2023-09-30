@@ -29,7 +29,6 @@
 #define device_write    (dev->ops->write)
 #define device_control  (dev->ops->control)
 #else
-
 #define device_init     (dev->init)
 #define device_open     (dev->open)
 #define device_close    (dev->close)
@@ -69,6 +68,7 @@ rt_err_t rt_device_register(rt_device_t dev,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_device_register);
 
 /**
  * This function removes a previously registered device driver
@@ -87,6 +87,7 @@ rt_err_t rt_device_unregister(rt_device_t dev)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_device_unregister);
 
 /**
  * This function initializes all registered device driver
@@ -112,6 +113,7 @@ rt_device_t rt_device_find(const char *name)
 {
     return (rt_device_t)rt_object_find(name, RT_Object_Class_Device);
 }
+RTM_EXPORT(rt_device_find);
 
 #ifdef RT_USING_HEAP
 /**
@@ -141,6 +143,7 @@ rt_device_t rt_device_create(int type, int attach_size)
 
     return device;
 }
+RTM_EXPORT(rt_device_create);
 
 /**
  * This function destroy the specific device object.
@@ -158,6 +161,7 @@ void rt_device_destroy(rt_device_t dev)
     /* release this device object */
     rt_free(dev);
 }
+RTM_EXPORT(rt_device_destroy);
 #endif
 
 /**
@@ -258,6 +262,7 @@ rt_err_t rt_device_open(rt_device_t dev, rt_uint16_t oflag)
 
     return result;
 }
+RTM_EXPORT(rt_device_open);
 
 /**
  * This function will close a device
@@ -293,6 +298,7 @@ rt_err_t rt_device_close(rt_device_t dev)
 
     return result;
 }
+RTM_EXPORT(rt_device_close);
 
 /**
  * This function will read some data from a device.
@@ -331,6 +337,7 @@ rt_size_t rt_device_read(rt_device_t dev,
 
     return 0;
 }
+RTM_EXPORT(rt_device_read);
 
 /**
  * This function will write some data to a device.
@@ -369,6 +376,7 @@ rt_size_t rt_device_write(rt_device_t dev,
 
     return 0;
 }
+RTM_EXPORT(rt_device_write);
 
 /**
  * This function will perform a variety of control functions on devices.
@@ -392,6 +400,7 @@ rt_err_t rt_device_control(rt_device_t dev, int cmd, void *arg)
 
     return -RT_ENOSYS;
 }
+RTM_EXPORT(rt_device_control);
 
 /**
  * This function will set the reception indication callback function. This callback function
@@ -413,6 +422,7 @@ rt_device_set_rx_indicate(rt_device_t dev,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_device_set_rx_indicate);
 
 /**
  * This function will set the indication callback function when device has
@@ -434,5 +444,6 @@ rt_device_set_tx_complete(rt_device_t dev,
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_device_set_tx_complete);
 
 #endif

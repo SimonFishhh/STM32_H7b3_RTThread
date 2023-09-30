@@ -24,8 +24,6 @@
  * 2016-08-09     ArdaFu       add thread suspend and resume hook.
  * 2017-04-10     armink       fixed the rt_thread_delete and rt_thread_detach
                                bug when thread has not startup.
- * 2018-11-22     Jesven       yield is same to rt_schedule
- *                             add support for tasks bound to cpu
  */
 
 #include <rthw.h>
@@ -84,13 +82,24 @@ void rt_thread_inited_sethook(void (*hook)(rt_thread_t thread))
 static void _thread_cleanup_execute(rt_thread_t thread)
 {
     register rt_base_t level;
-
+#ifdef RT_USING_MODULE
+    struct rt_dlmodule *module = RT_NULL;
+#endif
     level = rt_hw_interrupt_disable();
-
+#ifdef RT_USING_MODULE
+    module = (struct rt_dlmodule*)thread->module_id;
+    if (module)
+    {
+        dlmodule_destroy(module);
+    }
+#endif
     /* invoke thread cleanup */
     if (thread->cleanup != RT_NULL)
         thread->cleanup(thread);
 
+#ifdef RT_USING_SIGNALS
+    rt_thread_free_sig(thread);
+#endif
     rt_hw_interrupt_enable(level);
 }
 
@@ -194,6 +203,20 @@ static rt_err_t _rt_thread_init(struct rt_thread *thread,
                   0,
                   RT_TIMER_FLAG_ONE_SHOT);
 
+    /* initialize signal */
+#ifdef RT_USING_SIGNALS
+    thread->sig_mask    = 0x00;
+    thread->sig_pending = 0x00;
+
+    thread->sig_ret     = RT_NULL;
+    thread->sig_vectors = RT_NULL;
+    thread->si_list     = RT_NULL;
+#endif
+
+#ifdef RT_USING_LWP
+    thread->lwp = RT_NULL;
+#endif
+
     RT_OBJECT_HOOK_CALL(rt_thread_inited_hook, (thread));
 
     return RT_EOK;
@@ -245,6 +268,7 @@ rt_err_t rt_thread_init(struct rt_thread *thread,
                            priority,
                            tick);
 }
+RTM_EXPORT(rt_thread_init);
 
 /**
  * This function will return self thread object
@@ -255,6 +279,7 @@ rt_thread_t rt_thread_self(void)
 {
     return rt_current_thread;
 }
+RTM_EXPORT(rt_thread_self);
 
 /**
  * This function will start a thread and put it to system ready queue
@@ -296,6 +321,7 @@ rt_err_t rt_thread_startup(rt_thread_t thread)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_startup);
 
 /**
  * This function will detach a thread. The thread object will be removed from
@@ -347,6 +373,7 @@ rt_err_t rt_thread_detach(rt_thread_t thread)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_detach);
 
 #ifdef RT_USING_HEAP
 /**
@@ -397,6 +424,7 @@ rt_thread_t rt_thread_create(const char *name,
 
     return thread;
 }
+RTM_EXPORT(rt_thread_create);
 
 /**
  * This function will delete a thread. The thread object will be removed from
@@ -443,6 +471,7 @@ rt_err_t rt_thread_delete(rt_thread_t thread)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_delete);
 #endif
 
 /**
@@ -487,6 +516,7 @@ rt_err_t rt_thread_yield(void)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_yield);
 
 /**
  * This function will let current thread sleep for some ticks.
@@ -537,6 +567,7 @@ rt_err_t rt_thread_delay(rt_tick_t tick)
 {
     return rt_thread_sleep(tick);
 }
+RTM_EXPORT(rt_thread_delay);
 
 /**
  * This function will let current thread delay until (*tick + inc_tick).
@@ -593,6 +624,7 @@ rt_err_t rt_thread_delay_until(rt_tick_t *tick, rt_tick_t inc_tick)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_delay_until);
 
 /**
  * This function will let current thread delay for some milliseconds.
@@ -609,6 +641,7 @@ rt_err_t rt_thread_mdelay(rt_int32_t ms)
 
     return rt_thread_sleep(tick);
 }
+RTM_EXPORT(rt_thread_mdelay);
 
 /**
  * This function will control thread behaviors according to control command.
@@ -698,6 +731,7 @@ rt_err_t rt_thread_control(rt_thread_t thread, int cmd, void *arg)
 
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_control);
 
 /**
  * This function will suspend the specified thread.
@@ -743,6 +777,7 @@ rt_err_t rt_thread_suspend(rt_thread_t thread)
     RT_OBJECT_HOOK_CALL(rt_thread_suspend_hook, (thread));
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_suspend);
 
 /**
  * This function will resume a thread and put it to system ready queue.
@@ -786,6 +821,7 @@ rt_err_t rt_thread_resume(rt_thread_t thread)
     RT_OBJECT_HOOK_CALL(rt_thread_resume_hook, (thread));
     return RT_EOK;
 }
+RTM_EXPORT(rt_thread_resume);
 
 /**
  * This function is the timeout function for thread, normally which is invoked
@@ -816,6 +852,7 @@ void rt_thread_timeout(void *parameter)
     /* do schedule */
     rt_schedule();
 }
+RTM_EXPORT(rt_thread_timeout);
 
 /**
  * This function will find the specified thread.
@@ -830,5 +867,6 @@ rt_thread_t rt_thread_find(char *name)
 {
     return (rt_thread_t)rt_object_find(name, RT_Object_Class_Thread);
 }
+RTM_EXPORT(rt_thread_find);
 
 /**@}*/

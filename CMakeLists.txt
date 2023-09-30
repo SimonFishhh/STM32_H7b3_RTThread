@@ -55,6 +55,8 @@ include_directories(Core/Inc Drivers/STM32H7xx_HAL_Driver/Inc Drivers/STM32H7xx_
         RT-Thread/components/finsh
         RT-Thread/components/fal/inc
         RT-Thread/components/lvgl
+        RT-Thread/components/dfs/include
+        RT-Thread/components/dfs/filesystems/elmfat
         RT-Thread/include
         UserApp)
 

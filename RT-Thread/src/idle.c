@@ -13,12 +13,14 @@
  * 2016-08-09     ArdaFu       add method to get the handler of the idle thread.
  * 2018-02-07     Bernard      lock scheduler to protect tid->cleanup.
  * 2018-07-14     armink       add idle hook list
- * 2018-11-22     Jesven       add per cpu idle task
- *                             combine the code of primary and secondary cpu
  */
 
 #include <rthw.h>
 #include <rtthread.h>
+
+#ifdef RT_USING_MODULE
+#include <dlmodule.h>
+#endif
 
 #if defined (RT_USING_HOOK)
 #ifndef RT_USING_IDLE_HOOK
@@ -117,7 +119,6 @@ rt_err_t rt_thread_idle_delhook(void (*hook)(void))
 
 #endif
 
-#ifdef RT_USING_HEAP
 /* Return whether there is defunctional thread to be deleted. */
 rt_inline int _has_defunct_thread(void)
 {
@@ -131,7 +132,6 @@ rt_inline int _has_defunct_thread(void)
 
     return l->next != l;
 }
-#endif
 
 /**
  * @ingroup Thread

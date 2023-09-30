@@ -453,7 +453,6 @@ long list_mutex(void)
     return 0;
 }
 FINSH_FUNCTION_EXPORT(list_mutex, list mutex in system);
-MSH_CMD_EXPORT(list_mutex, list mutex in system);
 #endif
 
 #ifdef RT_USING_MAILBOX

@@ -30,6 +30,8 @@
 #include "fal.h"
 #include "drivers/spi/drv_ospi_flash.h"
 #include "../RT-Thread/bsp/ST7789/lcd_spi_200.h"
+//#include "lvgl.h"
+//#include "lv_port/lv_port_disp."
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -95,7 +97,9 @@ int main(void)
 //  MX_USART1_UART_Init();
   MX_OCTOSPI1_Init();
   /* USER CODE BEGIN 2 */
+    //rtthread system init
     fal_init();
+    //app init
     App_Init();
   /* USER CODE END 2 */
 
@@ -104,7 +108,6 @@ int main(void)
   while (1)
   {
       rt_thread_mdelay(5000);
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

@@ -50,8 +50,10 @@ endif ()
 
 include_directories(${includes}
         RT-Thread/bsp
+        RT-Thread/components
         RT-Thread/components/finsh
         RT-Thread/components/fal/inc
+        RT-Thread/components/lvgl
         RT-Thread/include
         UserApp)
 

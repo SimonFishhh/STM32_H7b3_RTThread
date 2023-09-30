@@ -51,8 +51,10 @@ endif ()
 
 include_directories(Core/Inc Drivers/STM32H7xx_HAL_Driver/Inc Drivers/STM32H7xx_HAL_Driver/Inc/Legacy Drivers/CMSIS/Device/ST/STM32H7xx/Include Drivers/CMSIS/Include
         RT-Thread/bsp
+        RT-Thread/components
         RT-Thread/components/finsh
         RT-Thread/components/fal/inc
+        RT-Thread/components/lvgl
         RT-Thread/include
         UserApp)
 

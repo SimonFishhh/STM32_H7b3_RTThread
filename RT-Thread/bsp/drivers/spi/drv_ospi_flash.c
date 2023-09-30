@@ -4,10 +4,28 @@
 
 #include "drv_ospi_flash.h"
 
+struct Flash{
+    OSPI_HandleTypeDef Bus;
+    int16_t DeviceID;
+};
+
+int8_t Flash_Init(struct Flash device, OSPI_HandleTypeDef hospi){
+    device.Bus = hospi;
+
+    uint32_t	Device_ID;
+    Device_ID = OSPI_W25Qxx_ReadID(device.Bus);
+    if( Device_ID == W25Qxx_FLASH_ID ){
+        return OSPI_W25Qxx_OK;
+    }
+    else{
+        return W25Qxx_ERROR_INIT;
+    }
+}
+
 int8_t OSPI_W25Qxx_Init(void)
 {
     uint32_t	Device_ID;
-    Device_ID = OSPI_W25Qxx_ReadID();
+    Device_ID = OSPI_W25Qxx_ReadID(hospi1);
     if( Device_ID == W25Qxx_FLASH_ID )
     {
         return OSPI_W25Qxx_OK;
@@ -61,7 +79,7 @@ int8_t OSPI_W25Qxx_AutoPollingMemReady(void)
     return OSPI_W25Qxx_OK;
 }
 
-uint32_t OSPI_W25Qxx_ReadID(void)
+uint32_t OSPI_W25Qxx_ReadID(OSPI_HandleTypeDef hospi)
 {
     OSPI_RegularCmdTypeDef  sCommand;
 
@@ -86,9 +104,9 @@ uint32_t OSPI_W25Qxx_ReadID(void)
     sCommand.Instruction        = W25Qxx_CMD_JedecID;
 
 
-    HAL_OSPI_Command(&hospi1, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE);
+    HAL_OSPI_Command(&hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE);
 
-    HAL_OSPI_Receive (&hospi1, OSPI_ReceiveBuff, HAL_OSPI_TIMEOUT_DEFAULT_VALUE);
+    HAL_OSPI_Receive (&hospi, OSPI_ReceiveBuff, HAL_OSPI_TIMEOUT_DEFAULT_VALUE);
 
     W25Qxx_ID = (OSPI_ReceiveBuff[0] << 16) | (OSPI_ReceiveBuff[1] << 8 ) | OSPI_ReceiveBuff[2];
 

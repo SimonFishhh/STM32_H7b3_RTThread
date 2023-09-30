@@ -41,7 +41,7 @@
 #define W25Qxx_Mem_Addr							0x90000000
 
 int8_t OSPI_W25Qxx_Init(void);
-uint32_t OSPI_W25Qxx_ReadID(void);
+uint32_t OSPI_W25Qxx_ReadID(OSPI_HandleTypeDef hospi);
 
 int8_t OSPI_W25Qxx_MemoryMappedMode(void);
 

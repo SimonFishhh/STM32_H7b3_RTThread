@@ -4,7 +4,6 @@
 
 #include "drv_serial.h"
 #include "usart.h"
-#include "dma.h"
 
 #ifdef RT_USING_CONSOLE
 
@@ -38,14 +37,14 @@ rt_size_t uart_write(rt_device_t dev,
 
     val = (const char *)(buffer);
 
-    __HAL_UNLOCK(&huart1);
-
+    rt_enter_critical();    //进入临界
     for (i = 0; i < size; i++){
         if (*(val + i) == '\n'){
             HAL_UART_Transmit(&huart1, (uint8_t *)&a, 1, 20);
         }
         HAL_UART_Transmit(&huart1, (uint8_t *)(val + i), 1, 20);
     }
+    rt_exit_critical();     //退出临界
     return 1;
 }
 

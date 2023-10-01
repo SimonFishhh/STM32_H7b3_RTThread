@@ -43,14 +43,14 @@ void rt_hw_board_init(void)
     rt_system_heap_init((void *)HEAP_BEGIN, (void *)HEAP_END);
 #endif
 
-    /* USART driver initialization is open by default */
-#ifdef RT_USING_SERIAL
-    rt_hw_usart_init();
-#endif
-
     /* Call components board initial (use INIT_BOARD_EXPORT()) */
 #ifdef RT_USING_COMPONENTS_INIT
     rt_components_board_init();
+#endif
+
+    /* USART driver initialization is open by default */
+#ifdef RT_USING_SERIAL
+    rt_hw_usart_init();
 #endif
 
     /* Set the shell console output device */

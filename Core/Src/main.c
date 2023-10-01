@@ -18,7 +18,6 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "dma.h"
 #include "octospi.h"
 //#include "spi.h"
 #include "usart.h"
@@ -98,7 +97,6 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
   MX_USART1_UART_Init();
   MX_OCTOSPI1_Init();
   /* USER CODE BEGIN 2 */
@@ -137,7 +135,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-      rt_thread_mdelay(500);
+      rt_thread_mdelay(5000);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

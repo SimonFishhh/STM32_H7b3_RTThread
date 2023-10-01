@@ -3,26 +3,14 @@
 //
 
 #include "drv_serial.h"
+#include "usart.h"
+#include "dma.h"
 
 #ifdef RT_USING_CONSOLE
 
-static UART_HandleTypeDef UartHandle;
 rt_err_t uart_init(rt_device_t dev)
 {
-    /* TODO: Please modify the UART port number according to your needs */
-    UartHandle.Instance = USART1;
-    UartHandle.Init.BaudRate = 115200;
-    UartHandle.Init.WordLength = UART_WORDLENGTH_8B;
-    UartHandle.Init.StopBits = UART_STOPBITS_1;
-    UartHandle.Init.Parity = UART_PARITY_NONE;
-    UartHandle.Init.Mode = UART_MODE_TX_RX;
-    UartHandle.Init.HwFlowCtl = UART_HWCONTROL_NONE;
-    UartHandle.Init.OverSampling = UART_OVERSAMPLING_16;
-
-    if (HAL_UART_Init(&UartHandle) != HAL_OK){
-        while (1);
-    }
-    return 0;
+    MX_USART1_UART_Init();
 }
 
 rt_err_t uart_open(rt_device_t dev, rt_uint16_t oflag){
@@ -34,7 +22,7 @@ rt_size_t uart_read(rt_device_t dev,
                     void       *buffer,
                     rt_size_t   size){
     while (1){
-        if (HAL_UART_Receive(&UartHandle, buffer, size, 20) == 0){
+        if (HAL_UART_Receive(&huart1, buffer, size, 20) == 0){
             return size;
         }
     }
@@ -50,13 +38,13 @@ rt_size_t uart_write(rt_device_t dev,
 
     val = (const char *)(buffer);
 
-    __HAL_UNLOCK(&UartHandle);
+    __HAL_UNLOCK(&huart1);
 
     for (i = 0; i < size; i++){
         if (*(val + i) == '\n'){
-            HAL_UART_Transmit(&UartHandle, (uint8_t *)&a, 1, 20);
+            HAL_UART_Transmit(&huart1, (uint8_t *)&a, 1, 20);
         }
-        HAL_UART_Transmit(&UartHandle, (uint8_t *)(val + i), 1, 20);
+        HAL_UART_Transmit(&huart1, (uint8_t *)(val + i), 1, 20);
     }
     return 1;
 }

@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "dma.h"
 #include "octospi.h"
 //#include "spi.h"
 #include "usart.h"
@@ -97,7 +98,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-//  MX_USART1_UART_Init();
+  MX_DMA_Init();
+  MX_USART1_UART_Init();
   MX_OCTOSPI1_Init();
   /* USER CODE BEGIN 2 */
     //rtthread system init
@@ -105,31 +107,25 @@ int main(void)
 
     struct rt_device *flash_dev = fal_blk_device_create("fs_qspi");
 
-    if (flash_dev == NULL)
-    {
-        rt_kprintf("Can't create a block device on '%s' partition.\n", "fs_qspi");
+    if (flash_dev == NULL){
+        log_e("Can't create a block device on '%s' partition.", "fs_qspi");
     }
-    else
-    {
-        rt_kprintf("Create a block device on the %s partition of flash successful.\n", "fs_qspi");
+    else{
+        log_i("Create a block device on the %s partition of flash successful.", "fs_qspi");
     }
 
-    if(rt_device_find("fs_qspi") != RT_NULL)
-    {
+    if(rt_device_find("fs_qspi") != RT_NULL){
         dfs_mkfs("elm", "fs_qspi");
 
-        if (dfs_mount("fs_qspi", "/", "elm", 0, 0) == RT_EOK)
-        {
-            rt_kprintf("onchip elm filesystem mount to '/'\n");
+        if (dfs_mount("fs_qspi", "/", "elm", 0, 0) == RT_EOK){
+            log_i("onchip elm filesystem mount to '/'");
         }
-        else
-        {
-            rt_kprintf("onchip elm filesystem mount to '/' failed!\n");
+        else{
+            log_e("onchip elm filesystem mount to '/' failed!");
         }
     }
-    else
-    {
-        rt_kprintf("find filesystem portion failed\r\n");
+    else{
+        log_e("find filesystem portion failed.");
     }
 
     //app init

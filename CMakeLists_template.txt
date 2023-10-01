@@ -54,6 +54,8 @@ include_directories(${includes}
         RT-Thread/components/finsh
         RT-Thread/components/fal/inc
         RT-Thread/components/lvgl
+        RT-Thread/components/dfs/include
+        RT-Thread/components/dfs/filesystems/elmfat
         RT-Thread/include
         UserApp)
 
